@@ -40,4 +40,20 @@ jobs:
     runs-on: ubuntu-latest
     needs: [CI]
     steps:
-      - run: echo "teste CD"
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set Kubernetes context
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Deploy to Kubernetes
+        uses: azure/k8s-deploy@v4
+        with:
+          action: deploy
+          manifests: 02-encontros-tech/k8s/deployment.yaml
+          images: |
+            jordanvieira/bootcamp-encontros-tech:v${{ github.run_number }}
+          strategy: basic
