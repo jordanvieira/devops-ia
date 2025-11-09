@@ -36,8 +36,9 @@ jobs:
           file: ./02-encontros-tech/Dockerfile
           context: ./02-encontros-tech
 
-  CD:
+  CD-Homolog:
     runs-on: ubuntu-latest
+    environment: homolog
     needs: [CI]
     steps:
       - name: Checkout
@@ -49,10 +50,45 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBE_CONFIG }}
 
+      - name: Create secret in Homolog
+        run: |
+          kubectl create secret generic encontros-tech-db-secret \
+            --from-literal=database-url='${{ secrets.DATABASE_URL_PRODUCTION }}' -n homolog --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Deploy to Kubernetes
         uses: azure/k8s-deploy@v4
         with:
           action: deploy
+          namespace: homolog
+          manifests: 02-encontros-tech/k8s/deployment.yaml
+          images: |
+            jordanvieira/bootcamp-encontros-tech:v${{ github.run_number }}
+          strategy: basic
+
+  CD-Production:
+    runs-on: ubuntu-latest
+    environment: production
+    needs: [CI]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set Kubernetes context
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Create secret in Production
+        run: |
+          kubectl create secret generic encontros-tech-db-secret \
+            --from-literal=database-url='${{ secrets.DATABASE_URL_PRODUCTION }}' -n production --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy to Kubernetes
+        uses: azure/k8s-deploy@v4
+        with:
+          action: deploy
+          namespace: production
           manifests: 02-encontros-tech/k8s/deployment.yaml
           images: |
             jordanvieira/bootcamp-encontros-tech:v${{ github.run_number }}
