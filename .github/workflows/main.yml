@@ -53,7 +53,7 @@ jobs:
       - name: Create secret in Homolog
         run: |
           kubectl create secret generic encontros-tech-db-secret \
-            --from-literal=database-url='${{ secrets.DATABASE_URL_PRODUCTION }}' -n homolog --dry-run=client -o yaml | kubectl apply -f -
+            --from-literal=DATABASE_URL='${{ secrets.DATABASE_URL_HOMOLOG }}' -n homolog --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy to Kubernetes
         uses: azure/k8s-deploy@v4
@@ -82,7 +82,7 @@ jobs:
       - name: Create secret in Production
         run: |
           kubectl create secret generic encontros-tech-db-secret \
-            --from-literal=database-url='${{ secrets.DATABASE_URL_PRODUCTION }}' -n production --dry-run=client -o yaml | kubectl apply -f -
+            --from-literal=DATABASE_URL='${{ secrets.DATABASE_URL_PRODUCTION }}' -n production --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy to Kubernetes
         uses: azure/k8s-deploy@v4
